@@ -1,24 +1,30 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import HomePage from './pages/HomePage';
+import LoginPage from './pages/LoginPage';
+import RegisterPage from './pages/RegisterPage';
+import ContributionsPage from './pages/ContributionsPage';
+import RecommendationsPage from './pages/RecommendationsPage';
+import NotificationsPage from './pages/NotificationsPage';
+import ChatPage from './pages/ChatPage';
+import GeolocationPage from './pages/GeolocationPage'; // Add this import
+import Navbar from './components/Navbar';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Navbar />
+      <Switch>
+        <Route path="/" exact component={HomePage} />
+        <Route path="/login" component={LoginPage} />
+        <Route path="/register" component={RegisterPage} />
+        <Route path="/contributions" component={ContributionsPage} />
+        <Route path="/recommendations" component={RecommendationsPage} />
+        <Route path="/notifications" component={NotificationsPage} />
+        <Route path="/chat" component={ChatPage} />
+        <Route path="/geolocation" component={GeolocationPage} /> {/* Add this route */}
+      </Switch>
+    </Router>
   );
 }
 
