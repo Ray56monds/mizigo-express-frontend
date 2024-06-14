@@ -7,7 +7,7 @@ import ContributionsPage from './pages/ContributionsPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ChatPage from './pages/ChatPage';
-import GeolocationPage from './pages/GeolocationPage';
+import GeolocationPage from './pages/GeolocationPage'; // Add this import
 
 function App() {
   return (
@@ -20,7 +20,7 @@ function App() {
         <Route path="/recommendations" element={<RecommendationsPage />} />
         <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/chat" element={<ChatPage />} />
-        <Route path="/geolocation" element={<GeolocationPage />} />
+        <Route path="/geolocation" element={<GeolocationPage />} /> {/* Add this route */}
       </Routes>
     </Router>
   );

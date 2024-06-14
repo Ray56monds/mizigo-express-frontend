@@ -1,122 +1,135 @@
-import { Box, Button, TextField, Typography } from "@mui/material";
+import React, { useState, useEffect } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
 import {
-  GoogleMap,
-  InfoWindow,
-  Marker,
-  useLoadScript,
-} from "@react-google-maps/api";
-import React, { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
-
-const libraries = ["places"];
-const mapContainerStyle = {
-  width: "100%",
-  height: "400px",
-};
-const center = {
-  lat: -1.2921,
-  lng: 36.8219,
-};
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  CircularProgress,
+  Alert,
+  AlertTitle,
+} from '@mui/material';
+import { useSnackbar } from 'notistack';
+import axios from 'axios';
 
 const GeolocationPage = () => {
-  const [selectedLocation, setSelectedLocation] = useState(null);
-  const [address, setAddress] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
+  const { enqueueSnackbar } = useSnackbar();
   const navigate = useNavigate();
   const location = useLocation();
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  const [isLoading, setIsLoading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [geolocationData, setGeolocationData] = useState(null);
+  const [error, setError] = useState(null);
 
-  const { isLoaded, loadError } = useLoadScript({
-    googleMapsApiKey: process.env.REACT_APP_GOOGLE_MAPS_API_KEY,
-    libraries,
-  });
-
-  const handleMarkerClick = (event) => {
-    setSelectedLocation({
-      lat: event.latLng.lat(),
-      lng: event.latLng.lng(),
-    });
-  };
-
-  const handleAddressChange = (event) => {
-    setAddress(event.target.value);
-  };
-
-  const handleSearch = async () => {
-    setIsLoading(true);
+  const handleGeolocationSubmit = async (data) => {
+    setIsSubmitting(true);
     try {
-      const response = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${address}&key=${process.env.REACT_APP_GOOGLE_MAPS_API_KEY}`
-      );
-      const data = await response.json();
-      if (data.results.length > 0) {
-        setSelectedLocation({
-          lat: data.results[0].geometry.location.lat,
-          lng: data.results[0].geometry.location.lng,
+      const response = await axios.post('/api/geolocation', data);
+      setGeolocationData(response.data);
+      enqueueSnackbar('Geolocation data fetched successfully!', { variant: 'success' });
+      setIsSubmitting(false);
+    } catch (err) {
+      setError(err.response.data.message);
+      enqueueSnackbar(err.response.data.message, { variant: 'error' });
+      setIsSubmitting(false);
+    }
+  };
+
+  useEffect(() => {
+    if (location.state?.coordinates) {
+      setIsLoading(true);
+      const { latitude, longitude } = location.state.coordinates;
+      axios
+        .post('/api/geolocation', { latitude, longitude })
+        .then((response) => {
+          setGeolocationData(response.data);
+          setIsLoading(false);
+        })
+        .catch((err) => {
+          setError(err.response.data.message);
+          enqueueSnackbar(err.response.data.message, { variant: 'error' });
+          setIsLoading(false);
         });
-      } else {
-        alert("Address not found.");
-      }
-    } catch (error) {
-      console.error(error);
-      alert("Error searching for address.");
-    } finally {
-      setIsLoading(false);
     }
-  };
-
-  const handleConfirm = () => {
-    if (selectedLocation) {
-      navigate("/create-order", {
-        state: {
-          location: selectedLocation,
-        },
-      });
-    } else {
-      alert("Please select a location on the map.");
-    }
-  };
-
-  if (loadError) return "Error loading maps";
-  if (!isLoaded) return "Loading Maps";
+  }, [location.state]);
 
   return (
-    <Box
-      sx={{
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        padding: 2,
-      }}
-    >
+    <Container maxWidth="md">
       <Typography variant="h4" gutterBottom>
-        Select Delivery Location
+        Geolocation
       </Typography>
-      <TextField
-        label="Enter Address"
-        value={address}
-        onChange={handleAddressChange}
-        sx={{ marginBottom: 2 }}
-      />
-      <Button variant="contained" onClick={handleSearch} disabled={isLoading}>
-        Search
-      </Button>
-      <GoogleMap
-        mapContainerStyle={mapContainerStyle}
-        center={center}
-        zoom={10}
-        onClick={handleMarkerClick}
-      >
-        {selectedLocation && <Marker position={selectedLocation} />}
-        {selectedLocation && (
-          <InfoWindow position={selectedLocation}>
-            <div>Selected Location</div>
-          </InfoWindow>
-        )}
-      </GoogleMap>
-      <Button variant="contained" onClick={handleConfirm} sx={{ marginTop: 2 }}>
-        Confirm
-      </Button>
-    </Box>
+      {isLoading && (
+        <Grid container justifyContent="center" alignItems="center" style={{ height: '200px' }}>
+          <CircularProgress />
+        </Grid>
+      )}
+      {error && (
+        <Alert severity="error">
+          <AlertTitle>Error</AlertTitle>
+          {error}
+        </Alert>
+      )}
+      {geolocationData && (
+        <Grid container spacing={2}>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              Latitude:
+            </Typography>
+            <Typography variant="body1">{geolocationData.latitude}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              Longitude:
+            </Typography>
+            <Typography variant="body1">{geolocationData.longitude}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              City:
+            </Typography>
+            <Typography variant="body1">{geolocationData.city}</Typography>
+          </Grid>
+          <Grid item xs={12} md={6}>
+            <Typography variant="h6" gutterBottom>
+              Region:
+            </Typography>
+            <Typography variant="body1">{geolocationData.region}</Typography>
+          </Grid>
+        </Grid>
+      )}
+      {!isLoading && !geolocationData && (
+        <form onSubmit={handleSubmit(handleGeolocationSubmit)}>
+          <Grid container spacing={2}>
+            <Grid item xs={12}>
+              <TextField
+                label="Latitude"
+                {...register('latitude', { required: true })}
+                error={!!errors.latitude}
+                helperText={errors.latitude ? 'Latitude is required' : ''}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <TextField
+                label="Longitude"
+                {...register('longitude', { required: true })}
+                error={!!errors.longitude}
+                helperText={errors.longitude ? 'Longitude is required' : ''}
+                fullWidth
+              />
+            </Grid>
+            <Grid item xs={12}>
+              <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
+                {isSubmitting ? <CircularProgress size={24} /> : 'Fetch Geolocation'}
+              </Button>
+            </Grid>
+          </Grid>
+        </form>
+      )}
+    </Container>
   );
 };
 
