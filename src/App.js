@@ -1,5 +1,5 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import HomePage from './pages/HomePage';
 import LoginPage from './pages/LoginPage';
 import RegisterPage from './pages/RegisterPage';
@@ -8,13 +8,11 @@ import RecommendationsPage from './pages/RecommendationsPage';
 import NotificationsPage from './pages/NotificationsPage';
 import ChatPage from './pages/ChatPage';
 import GeolocationPage from './pages/GeolocationPage'; // Add this import
-import Navbar from './components/Navbar';
 
 function App() {
   return (
     <Router>
-      <Navbar />
-      <Switch>
+      <Routes>
         <Route path="/" exact component={HomePage} />
         <Route path="/login" component={LoginPage} />
         <Route path="/register" component={RegisterPage} />
@@ -23,7 +21,7 @@ function App() {
         <Route path="/notifications" component={NotificationsPage} />
         <Route path="/chat" component={ChatPage} />
         <Route path="/geolocation" component={GeolocationPage} /> {/* Add this route */}
-      </Switch>
+        </Routes>
     </Router>
   );
 }
