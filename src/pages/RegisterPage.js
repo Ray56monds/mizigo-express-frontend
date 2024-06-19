@@ -1,76 +1,85 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import {
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
+import { useSnackbar } from 'notistack';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
-import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
 const RegisterPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const history = useHistory();
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleRegister = async (event) => {
-    event.preventDefault();
+  const handleRegisterSubmit = async (data) => {
+    setIsSubmitting(true);
     try {
-      await axios.post('http://localhost:3000/auth/register', {
-        email,
-        password,
-        firstName,
-        lastName,
-      });
-      history.push('/login');
-    } catch (error) {
-      console.error('Registration failed', error);
+      const response = await axios.post('/api/register', data);
+      enqueueSnackbar('Registration successful!', { variant: 'success' });
+      navigate('/login');
+    } catch (err) {
+      setError(err.response.data.message);
+      enqueueSnackbar(err.response.data.message, { variant: 'error' });
+      setIsSubmitting(false);
     }
   };
 
   return (
     <Container maxWidth="sm">
-      <Box mt={5}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Register
-        </Typography>
-        <form onSubmit={handleRegister}>
-          <TextField
-            label="Email"
-            type="email"
-            fullWidth
-            margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <TextField
-            label="Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <TextField
-            label="First Name"
-            fullWidth
-            margin="normal"
-            value={firstName}
-            onChange={(e) => setFirstName(e.target.value)}
-            required
-          />
-          <TextField
-            label="Last Name"
-            fullWidth
-            margin="normal"
-            value={lastName}
-            onChange={(e) => setLastName(e.target.value)}
-            required
-          />
-          <Button type="submit" variant="contained" color="primary" fullWidth>
-            Register
-          </Button>
-        </form>
-      </Box>
+      <Typography variant="h4" gutterBottom>
+        Register
+      </Typography>
+      {error && (
+        <Alert severity="error">
+          {error}
+        </Alert>
+      )}
+      <form onSubmit={handleSubmit(handleRegisterSubmit)}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Name"
+              {...register('name', { required: true })}
+              error={!!errors.name}
+              helperText={errors.name ? 'Name is required' : ''}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Email"
+              {...register('email', { required: true })}
+              error={!!errors.email}
+              helperText={errors.email ? 'Email is required' : ''}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Password"
+              type="password"
+              {...register('password', { required: true })}
+              error={!!errors.password}
+              helperText={errors.password ? 'Password is required' : ''}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
+              {isSubmitting ? <CircularProgress size={24} /> : 'Register'}
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
     </Container>
   );
 };
