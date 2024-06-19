@@ -11,7 +11,6 @@ import {
   Alert,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import axios from 'axios';
 
 const RegisterPage = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -23,7 +22,6 @@ const RegisterPage = () => {
   const handleRegisterSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      const response = await axios.post('/api/register', data);
       enqueueSnackbar('Registration successful!', { variant: 'success' });
       navigate('/login');
     } catch (err) {

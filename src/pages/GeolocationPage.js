@@ -16,7 +16,6 @@ import axios from 'axios';
 
 const GeolocationPage = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const navigate = useNavigate();
   const location = useLocation();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [isLoading, setIsLoading] = useState(false);
@@ -54,7 +53,7 @@ const GeolocationPage = () => {
           setIsLoading(false);
         });
     }
-  }, [location.state]);
+  }, [location.state, enqueueSnackbar]);  
 
   return (
     <Container maxWidth="md">

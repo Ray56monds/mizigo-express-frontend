@@ -13,31 +13,29 @@ const ChatPage = () => {
 
   useEffect(() => {
     // Join the conversation room
-    socket.emit("join-conversation", conversationId);
-
+    socket.emit('join-conversation', conversationId);
+  
     // Listen for new messages
-    socket.on("new-message", (message) => {
-      setMessages((prevMessages) => [...prevMessages, message]);
+    socket.on('new-message', (message) => {
+      setMessages([...messages, message]);
     });
-
+  
     // Fetch existing messages
-    fetch(
-      `${process.env.REACT_APP_BACKEND_URL}/api/conversations/${conversationId}/messages`
-    )
+    fetch(`/api/conversations/${conversationId}/messages`)
       .then((response) => response.json())
       .then((data) => {
         setMessages(data);
       })
       .catch((error) => {
-        console.error("Error fetching messages:", error);
+        console.error('Error fetching messages:', error);
       });
-
+  
     // Cleanup on component unmount
     return () => {
-      socket.emit("leave-conversation", conversationId);
+      socket.emit('leave-conversation', conversationId);
       socket.disconnect();
     };
-  }, [conversationId]);
+  }, [conversationId, socket]); // Add socket here  
 
   const handleSendMessage = (event) => {
     event.preventDefault();

@@ -11,7 +11,6 @@ import {
   Alert,
 } from '@mui/material';
 import { useSnackbar } from 'notistack';
-import axios from 'axios';
 
 const LoginPage = () => {
   const { enqueueSnackbar } = useSnackbar();
@@ -23,7 +22,6 @@ const LoginPage = () => {
   const handleLoginSubmit = async (data) => {
     setIsSubmitting(true);
     try {
-      const response = await axios.post('/api/login', data);
       enqueueSnackbar('Login successful!', { variant: 'success' });
       navigate('/dashboard');
     } catch (err) {
