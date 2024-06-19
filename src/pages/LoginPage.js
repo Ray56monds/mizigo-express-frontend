@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useSnackbar } from 'notistack';
+import axios from 'axios';
 import {
   Container,
   Typography,
@@ -9,12 +10,11 @@ import {
   Grid,
   CircularProgress,
   Alert,
+  AlertTitle,
 } from '@mui/material';
-import { useSnackbar } from 'notistack';
 
 const LoginPage = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -22,8 +22,9 @@ const LoginPage = () => {
   const handleLoginSubmit = async (data) => {
     setIsSubmitting(true);
     try {
+      await axios.post('/api/login', data); // Removed the response variable
       enqueueSnackbar('Login successful!', { variant: 'success' });
-      navigate('/dashboard');
+      setIsSubmitting(false);
     } catch (err) {
       setError(err.response.data.message);
       enqueueSnackbar(err.response.data.message, { variant: 'error' });
@@ -38,6 +39,7 @@ const LoginPage = () => {
       </Typography>
       {error && (
         <Alert severity="error">
+          <AlertTitle>Error</AlertTitle>
           {error}
         </Alert>
       )}

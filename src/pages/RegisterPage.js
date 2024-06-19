@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useForm } from 'react-hook-form';
+import { useSnackbar } from 'notistack';
+import axios from 'axios';
 import {
   Container,
   Typography,
@@ -9,12 +10,11 @@ import {
   Grid,
   CircularProgress,
   Alert,
+  AlertTitle,
 } from '@mui/material';
-import { useSnackbar } from 'notistack';
 
 const RegisterPage = () => {
   const { enqueueSnackbar } = useSnackbar();
-  const navigate = useNavigate();
   const { register, handleSubmit, formState: { errors } } = useForm();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [error, setError] = useState(null);
@@ -22,8 +22,9 @@ const RegisterPage = () => {
   const handleRegisterSubmit = async (data) => {
     setIsSubmitting(true);
     try {
+      await axios.post('/api/register', data); // Removed the response variable
       enqueueSnackbar('Registration successful!', { variant: 'success' });
-      navigate('/login');
+      setIsSubmitting(false);
     } catch (err) {
       setError(err.response.data.message);
       enqueueSnackbar(err.response.data.message, { variant: 'error' });
@@ -38,20 +39,12 @@ const RegisterPage = () => {
       </Typography>
       {error && (
         <Alert severity="error">
+          <AlertTitle>Error</AlertTitle>
           {error}
         </Alert>
       )}
       <form onSubmit={handleSubmit(handleRegisterSubmit)}>
         <Grid container spacing={2}>
-          <Grid item xs={12}>
-            <TextField
-              label="Name"
-              {...register('name', { required: true })}
-              error={!!errors.name}
-              helperText={errors.name ? 'Name is required' : ''}
-              fullWidth
-            />
-          </Grid>
           <Grid item xs={12}>
             <TextField
               label="Email"
