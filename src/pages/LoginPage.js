@@ -1,54 +1,76 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useForm } from 'react-hook-form';
+import {
+  Container,
+  Typography,
+  TextField,
+  Button,
+  Grid,
+  CircularProgress,
+  Alert,
+} from '@mui/material';
+import { useSnackbar } from 'notistack';
 import axios from 'axios';
-import { useHistory } from 'react-router-dom';
-import { Container, TextField, Button, Typography, Box } from '@mui/material';
 
 const LoginPage = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const history = useHistory();
+  const { enqueueSnackbar } = useSnackbar();
+  const navigate = useNavigate();
+  const { register, handleSubmit, formState: { errors } } = useForm();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState(null);
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
+  const handleLoginSubmit = async (data) => {
+    setIsSubmitting(true);
     try {
-      const response = await axios.post('http://localhost:3000/auth/login', { email, password });
-      localStorage.setItem('token', response.data.access_token);
-      history.push('/');
-    } catch (error) {
-      console.error('Login failed', error);
+      const response = await axios.post('/api/login', data);
+      enqueueSnackbar('Login successful!', { variant: 'success' });
+      navigate('/dashboard');
+    } catch (err) {
+      setError(err.response.data.message);
+      enqueueSnackbar(err.response.data.message, { variant: 'error' });
+      setIsSubmitting(false);
     }
   };
 
   return (
     <Container maxWidth="sm">
-      <Box mt={5}>
-        <Typography variant="h4" component="h1" gutterBottom>
-          Login
-        </Typography>
-        <form onSubmit={handleLogin}>
-          <TextField
-            label="Email"
-            type="email"
-            fullWidth
-            margin="normal"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-          <TextField
-            label="Password"
-            type="password"
-            fullWidth
-            margin="normal"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <Button type="submit" variant="contained" color="primary" fullWidth>
-            Login
-          </Button>
-        </form>
-      </Box>
+      <Typography variant="h4" gutterBottom>
+        Login
+      </Typography>
+      {error && (
+        <Alert severity="error">
+          {error}
+        </Alert>
+      )}
+      <form onSubmit={handleSubmit(handleLoginSubmit)}>
+        <Grid container spacing={2}>
+          <Grid item xs={12}>
+            <TextField
+              label="Email"
+              {...register('email', { required: true })}
+              error={!!errors.email}
+              helperText={errors.email ? 'Email is required' : ''}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <TextField
+              label="Password"
+              type="password"
+              {...register('password', { required: true })}
+              error={!!errors.password}
+              helperText={errors.password ? 'Password is required' : ''}
+              fullWidth
+            />
+          </Grid>
+          <Grid item xs={12}>
+            <Button type="submit" variant="contained" color="primary" disabled={isSubmitting}>
+              {isSubmitting ? <CircularProgress size={24} /> : 'Login'}
+            </Button>
+          </Grid>
+        </Grid>
+      </form>
     </Container>
   );
 };
